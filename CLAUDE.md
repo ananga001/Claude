@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **ClaudeSol001.sln** — Visual Studio 2022 solution (v17)
 - **ConsoleApp1/** — .NET 9 console app. See [ConsoleApp1/README.md](./ConsoleApp1/README.md)
 - **HelloWorldWinForms/** — .NET 9 WinForms app. See [HelloWorldWinForms/README.md](./HelloWorldWinForms/README.md)
-- **CalculatorMVC/** — .NET 9 ASP.NET Core MVC web app with Add/Subtract/Multiply calculator
+- **CalculatorMVC/** — .NET 9 ASP.NET Core MVC web app with Add/Subtract/Multiply/Divide calculator
 
 Each project has its own `README.md` for project-specific details. This file covers solution-wide guidance only.
 
@@ -67,6 +67,7 @@ Useful flags when working in this repo:
 | `claude -n <name>` | Name the current session for later resuming |
 | `claude --model <id>` | Set the model for the session |
 | `claude --effort <level>` | Set effort level: `low / medium / high / max` |
+| `claude /context` | Show current context window usage and token breakdown |
 
 ## ConsoleApp1
 
@@ -82,6 +83,7 @@ Single form with a "Hello, World!" label. Key files:
 ## CalculatorMVC
 
 ASP.NET Core MVC web app. Default route lands on the Calculator. Key files:
-- `Controllers/CalculatorController.cs` — GET index, POST calculate (add/subtract/multiply)
+- `Controllers/CalculatorController.cs` — GET index, POST calculate (add/subtract/multiply/divide)
 - `Models/CalculatorModel.cs` — input + result model
 - `Views/Calculator/Index.cshtml` — Bootstrap form UI with result display
+- Division includes divide-by-zero guard (returns error message instead of throwing)
