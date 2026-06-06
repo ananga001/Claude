@@ -50,6 +50,19 @@ ClaudeSol001/
 
 As projects grow, add project-specific sections below rather than creating per-project `CLAUDE.md` files.
 
+## Claude Code CLI
+
+Useful flags when working in this repo:
+
+| Flag | Description |
+|---|---|
+| `claude -r` | Resume a past session (interactive picker) |
+| `claude -r <name>` | Resume a specific named session |
+| `claude -c` | Continue the most recent conversation |
+| `claude -n <name>` | Name the current session for later resuming |
+| `claude --model <id>` | Set the model for the session |
+| `claude --effort <level>` | Set effort level: `low / medium / high / max` |
+
 ## ConsoleApp1
 
 Currently a minimal Hello World. Entry point: `ConsoleApp1/Program.cs`.
