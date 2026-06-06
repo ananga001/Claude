@@ -1,0 +1,50 @@
+@model CalculatorMVC.Models.CalculatorModel
+@{
+    ViewData["Title"] = "Calculator";
+}
+
+<div class="container mt-5" style="max-width: 480px;">
+    <h2 class="mb-4">Calculator</h2>
+
+    <form asp-controller="Calculator" asp-action="Calculate" method="post">
+        <div class="mb-3">
+            <label asp-for="NumberA" class="form-label">Number A</label>
+            <input asp-for="NumberA" class="form-control" type="number" step="any" placeholder="Enter first number" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="NumberB" class="form-label">Number B</label>
+            <input asp-for="NumberB" class="form-control" type="number" step="any" placeholder="Enter second number" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Operation" class="form-label">Operation</label>
+            <select asp-for="Operation" class="form-select">
+                <option value="">-- Select --</option>
+                <option value="add">Add (+)</option>
+                <option value="subtract">Subtract (−)</option>
+                <option value="multiply">Multiply (×)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Calculate</button>
+    </form>
+
+    @if (Model.Error != null)
+    {
+        <div class="alert alert-danger mt-4">@Model.Error</div>
+    }
+    else if (Model.Result.HasValue)
+    {
+        <div class="alert alert-success mt-4">
+            <strong>Result:</strong> @Model.NumberA
+            @(Model.Operation switch {
+                "add"      => "+",
+                "subtract" => "−",
+                "multiply" => "×",
+                _          => "?"
+            })
+            @Model.NumberB = <strong>@Model.Result</strong>
+        </div>
+    }
+</div>
