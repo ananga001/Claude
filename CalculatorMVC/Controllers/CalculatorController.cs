@@ -19,11 +19,18 @@ public class CalculatorController : Controller
             return View("Index", model);
         }
 
+        if (model.Operation == "divide" && model.NumberB == 0)
+        {
+            model.Error = "Cannot divide by zero.";
+            return View("Index", model);
+        }
+
         model.Result = model.Operation switch
         {
             "add"      => model.NumberA + model.NumberB,
             "subtract" => model.NumberA - model.NumberB,
             "multiply" => model.NumberA * model.NumberB,
+            "divide"   => model.NumberA / model.NumberB,
             _          => null
         };
 
