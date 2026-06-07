@@ -1,0 +1,47 @@
+@model IEnumerable<CalculatorMVC.Models.LoanApplication>
+@{
+    ViewData["Title"] = "Supervisor Queue";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-1">Supervisor — Loan Queue</h2>
+    <p class="text-muted mb-4">Loans $100–$999 awaiting approval.</p>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No pending loans in this queue.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-warning">
+                <tr>
+                    <th>#</th>
+                    <th>Applicant</th>
+                    <th>Purpose</th>
+                    <th>Amount</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in Model)
+                {
+                    <tr>
+                        <td>@loan.Id</td>
+                        <td>@loan.ApplicantName</td>
+                        <td>@loan.Purpose</td>
+                        <td>$@loan.Amount.ToString("0.00")</td>
+                        <td>@loan.SubmittedAt.ToString("g")</td>
+                        <td>
+                            <form asp-action="SupervisorApprove" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@loan.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

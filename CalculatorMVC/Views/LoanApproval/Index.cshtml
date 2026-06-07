@@ -1,0 +1,37 @@
+@model CalculatorMVC.Models.LoanApplication
+@{
+    ViewData["Title"] = "Submit Loan";
+}
+
+<div class="container mt-5" style="max-width: 520px;">
+    <h2 class="mb-4">Submit Loan Application</h2>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+
+    <form asp-controller="LoanApproval" asp-action="Submit" method="post">
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="ApplicantName" class="form-label">Applicant Name</label>
+            <input asp-for="ApplicantName" class="form-control" placeholder="Full name" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Purpose" class="form-label">Loan Purpose</label>
+            <input asp-for="Purpose" class="form-control" placeholder="e.g. Home renovation" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Amount" class="form-label">Amount ($)</label>
+            <input asp-for="Amount" class="form-control" type="number" min="1" step="0.01" placeholder="Enter loan amount" />
+            <div class="form-text">
+                &lt; $100 → Normal User &nbsp;|&nbsp; $100–$999 → Supervisor &nbsp;|&nbsp; ≥ $1000 → Manager
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Submit Application</button>
+    </form>
+</div>
