@@ -1,10 +1,12 @@
 using CalculatorMVC.Chain;
 using CalculatorMVC.Models;
 using CalculatorMVC.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculatorMVC.Controllers;
 
+[Authorize]
 public class LoanApprovalController : Controller
 {
     private readonly ILoanStore _store;
