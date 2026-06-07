@@ -1,0 +1,94 @@
+@model CalculatorMVC.Models.UserIndexViewModel
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>User Management</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Add User</a>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+
+    <h4 class="mt-4">Managers</h4>
+    @if (!Model.Managers.Any())
+    {
+        <p class="text-muted">No managers added yet.</p>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-danger">
+                <tr><th>#</th><th>Name</th><th>Date of Birth</th><th>Direct Reports (Supervisors)</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.Managers)
+                {
+                    var reports = Model.Supervisors.Where(s => s.ReportingToId == m.Id);
+                    <tr>
+                        <td>@m.Id</td>
+                        <td>@m.Name</td>
+                        <td>@m.DateOfBirth.ToString("dd MMM yyyy")</td>
+                        <td>@(reports.Any() ? string.Join(", ", reports.Select(r => r.Name)) : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h4 class="mt-4">Supervisors</h4>
+    @if (!Model.Supervisors.Any())
+    {
+        <p class="text-muted">No supervisors added yet.</p>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-warning">
+                <tr><th>#</th><th>Name</th><th>Date of Birth</th><th>Reports To</th><th>Direct Reports (Normal Users)</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Supervisors)
+                {
+                    var reports = Model.NormalUsers.Where(n => n.ReportingToId == s.Id);
+                    <tr>
+                        <td>@s.Id</td>
+                        <td>@s.Name</td>
+                        <td>@s.DateOfBirth.ToString("dd MMM yyyy")</td>
+                        <td>@(Model.ReportingToNames.TryGetValue(s.Id, out var mgrName) ? mgrName : "—")</td>
+                        <td>@(reports.Any() ? string.Join(", ", reports.Select(r => r.Name)) : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h4 class="mt-4">Normal Users</h4>
+    @if (!Model.NormalUsers.Any())
+    {
+        <p class="text-muted">No normal users added yet.</p>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr><th>#</th><th>Name</th><th>Date of Birth</th><th>Reports To</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var n in Model.NormalUsers)
+                {
+                    <tr>
+                        <td>@n.Id</td>
+                        <td>@n.Name</td>
+                        <td>@n.DateOfBirth.ToString("dd MMM yyyy")</td>
+                        <td>@(Model.ReportingToNames.TryGetValue(n.Id, out var supName) ? supName : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

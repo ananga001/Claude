@@ -1,0 +1,77 @@
+@model CalculatorMVC.Models.User
+@{
+    ViewData["Title"] = "Add User";
+    var managers    = (IReadOnlyList<CalculatorMVC.Models.User>)ViewBag.Managers;
+    var supervisors = (IReadOnlyList<CalculatorMVC.Models.User>)ViewBag.Supervisors;
+}
+
+<div class="container mt-5" style="max-width: 520px;">
+    <h2 class="mb-4">Add User</h2>
+
+    <form asp-controller="User" asp-action="Create" method="post">
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">Name</label>
+            <input asp-for="Name" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
+            <input asp-for="DateOfBirth" class="form-control" type="date" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Role" class="form-label">Role</label>
+            <select asp-for="Role" class="form-select" id="roleSelect"
+                    asp-items="Html.GetEnumSelectList<CalculatorMVC.Models.UserRole>()">
+            </select>
+        </div>
+
+        <div class="mb-3" id="reportingToGroup">
+            <label asp-for="ReportingToId" class="form-label">Reporting To</label>
+            <select asp-for="ReportingToId" class="form-select" id="reportingToSelect">
+                <option value="">— Select —</option>
+            </select>
+            <span asp-validation-for="ReportingToId" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Add User</button>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    const managers    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                            managers.Select(m => new { id = m.Id, name = m.Name })));
+    const supervisors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                            supervisors.Select(s => new { id = s.Id, name = s.Name })));
+
+    const roleSelect      = document.getElementById('roleSelect');
+    const reportingGroup  = document.getElementById('reportingToGroup');
+    const reportingSelect = document.getElementById('reportingToSelect');
+
+    function updateReportingDropdown() {
+        const role = roleSelect.value;
+        reportingSelect.innerHTML = '<option value="">— Select —</option>';
+
+        if (role === 'Manager') {
+            reportingGroup.style.display = 'none';
+            reportingSelect.value = '';
+            return;
+        }
+
+        reportingGroup.style.display = '';
+        const options = role === 'Supervisor' ? managers : supervisors;
+        options.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o.id;
+            opt.textContent = o.name;
+            reportingSelect.appendChild(opt);
+        });
+    }
+
+    roleSelect.addEventListener('change', updateReportingDropdown);
+    updateReportingDropdown();
+</script>
+}
