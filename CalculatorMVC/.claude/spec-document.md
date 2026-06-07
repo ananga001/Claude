@@ -2,12 +2,15 @@
 
 ## 1. Overview
 
-create a mvc page. it contains chian of responsibility.
-Loan approval : If amount is less than 100 then noramal role user can approve
-if amount more than 100 and less than 1000, then Supervisor role will approve
-if amount is more than 1000 then manager will approve. 
-Remmber: Loan will pass from Normal --> Supervisor --> Manager. Each user will check and delegate request to
-next role
+Chain of Responsibility pattern for loan approval routing in ASP.NET Core MVC.
+
+- Amount < $100 → Normal User approves
+- Amount $100–$999 → Supervisor approves
+- Amount ≥ $1000 → Manager approves
+
+Loans pass through the chain (Normal → Supervisor → Manager) on submission to determine queue placement.
+
+**Status: Implemented and pushed (commit 24e5900)**
 
 ---
 
@@ -19,22 +22,79 @@ Nothing — this is the first step.
 
 ## 3. Routes
 
-Loan Approval
-LoanApproverUser
-LoanApproverSupervisor
-LoanApproverManager
-
+| Route | Controller Action | Purpose |
+|---|---|---|
+| GET /LoanApproval | Index | Submit loan form |
+| POST /LoanApproval/Submit | Submit | Process and queue loan |
+| GET /LoanApproval/LoanApproverUser | LoanApproverUser | Normal user queue |
+| POST /LoanApproval/UserApprove | UserApprove | Normal user approves |
+| GET /LoanApproval/LoanApproverSupervisor | LoanApproverSupervisor | Supervisor queue |
+| POST /LoanApproval/SupervisorApprove | SupervisorApprove | Supervisor approves |
+| GET /LoanApproval/LoanApproverManager | LoanApproverManager | Manager queue |
+| POST /LoanApproval/ManagerApprove | ManagerApprove | Manager approves |
 
 ---
 
-## 4. Database Schema
+## 4. Data Model
 
-Create in c# object to hold infomration
+```csharp
+// Models/LoanApplication.cs
+public enum LoanStatus { Pending, Approved }
 
+public class LoanApplication {
+    public int Id { get; set; }
+    public string ApplicantName { get; set; }
+    public string Purpose { get; set; }
+    public decimal Amount { get; set; }
+    public string CurrentQueue { get; set; }   // "Normal" | "Supervisor" | "Manager"
+    public LoanStatus Status { get; set; }
+    public string? ApprovedBy { get; set; }
+    public DateTime SubmittedAt { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+}
+```
 
-## 5. Flow
-User submit amount and basic info.
-Normal Role will see details of submitted loans and use delegate process till approval
-Once loan approved send email
+In-memory singleton store (`Services/LoanStore.cs`) — no database.
 
+---
 
+## 5. Chain of Responsibility
+
+```
+Chain/
+  LoanApproverBase.cs      ← abstract: SetNext + Handle
+  NormalApprover.cs        ← amount < 100 → Normal queue; else pass to Supervisor
+  SupervisorApprover.cs    ← amount < 1000 → Supervisor queue; else pass to Manager
+  ManagerApprover.cs       ← always → Manager queue
+```
+
+Chain runs on submission to set `CurrentQueue`. Each role's queue page shows pending loans for that queue with an Approve button.
+
+---
+
+## 6. Flow
+
+1. User submits name, purpose, and amount via `/LoanApproval`
+2. Chain of Responsibility sets `CurrentQueue` based on amount thresholds
+3. Each role visits their queue page and approves loans
+4. On approval: `Status = Approved`, `ApprovedBy` and `ApprovedAt` are set
+5. `EmailService` logs an approval notification (simulated — no SMTP)
+
+---
+
+## 7. Key Files
+
+```
+Controllers/LoanApprovalController.cs
+Models/LoanApplication.cs
+Chain/LoanApproverBase.cs
+Chain/NormalApprover.cs
+Chain/SupervisorApprover.cs
+Chain/ManagerApprover.cs
+Services/ILoanStore.cs  +  LoanStore.cs
+Services/IEmailService.cs  +  EmailService.cs
+Views/LoanApproval/Index.cshtml
+Views/LoanApproval/LoanApproverUser.cshtml
+Views/LoanApproval/LoanApproverSupervisor.cshtml
+Views/LoanApproval/LoanApproverManager.cshtml
+```
