@@ -80,6 +80,11 @@ Chain runs on submission to set `CurrentQueue`. Each role's queue page shows pen
 4. On approval: `Status = Approved`, `ApprovedBy` and `ApprovedAt` are set
 5. `EmailService` logs an approval notification (simulated — no SMTP)
 
+## 7. User
+Let's add user with different role.
+Users for role Normal, Supervisor, Manager
+Each user has name , dob, role and reporting people.
+Heirarch : Manager has one or more Supervisor. Supervior has one or more normal role user
 ---
 
 ## 7. Key Files
