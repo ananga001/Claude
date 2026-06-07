@@ -83,7 +83,34 @@ Single form with a "Hello, World!" label. Key files:
 ## CalculatorMVC
 
 ASP.NET Core MVC web app. Default route lands on the Calculator. Key files:
+
+**Calculator**
 - `Controllers/CalculatorController.cs` — GET index, POST calculate (add/subtract/multiply/divide)
 - `Models/CalculatorModel.cs` — input + result model
 - `Views/Calculator/Index.cshtml` — Bootstrap form UI with result display
 - Division includes divide-by-zero guard (returns error message instead of throwing)
+
+**Loan Approval — Chain of Responsibility**
+- `Controllers/LoanApprovalController.cs` — 8 routes: submit + 3 role queues + 3 approvals; protected with `[Authorize]`
+- `Models/LoanApplication.cs` — loan model with `LoanStatus` enum
+- `Chain/` — `LoanApproverBase`, `NormalApprover` (<$100), `SupervisorApprover` ($100–$999), `ManagerApprover` (≥$1000)
+- `Services/ILoanStore` + `LoanStore` — in-memory singleton store
+- `Services/IEmailService` + `EmailService` — simulated approval email (logs to ILogger)
+
+**User Management**
+- `Controllers/UserController.cs` — Index (hierarchy view) + Create
+- `Models/User.cs` — `UserRole` enum (Normal/Supervisor/Manager) + `User` with `ReportingToId`
+- `Models/UserIndexViewModel.cs` — groups users by role for the Index view
+- `Services/IUserStore` + `UserStore` — in-memory singleton
+
+**Authentication (Cookie-based)**
+- `Controllers/AccountController.cs` — Register, Login, Logout
+- `Models/Account.cs` — username + BCrypt password hash + role
+- `Models/RegisterViewModel.cs`, `LoginViewModel.cs`
+- `Services/IAccountStore` + `AccountStore` — in-memory singleton; uses `BCrypt.Net-Next`
+- `Views/Account/Register.cshtml`, `Login.cshtml` — Bootstrap forms
+- `Program.cs` — `AddAuthentication(Cookie)`, `UseAuthentication`, `UseAuthorization`
+- Unauthenticated users redirected to `/Account/Login`
+
+**Slash Commands** (`.claude/commands/`)
+- `/SeedUser` — seeds Manager → Supervisor → Normal user with Indian names via HTTP POST

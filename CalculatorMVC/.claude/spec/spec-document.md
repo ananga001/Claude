@@ -81,10 +81,21 @@ Chain runs on submission to set `CurrentQueue`. Each role's queue page shows pen
 5. `EmailService` logs an approval notification (simulated — no SMTP)
 
 ## 7. User
-Let's add user with different role.
-Users for role Normal, Supervisor, Manager
-Each user has name , dob, role and reporting people.
-Heirarch : Manager has one or more Supervisor. Supervior has one or more normal role user
+
+Users with role Normal, Supervisor, Manager. Each user has name, DOB, role and reporting people.
+Hierarchy: Manager has one or more Supervisors. Supervisor has one or more Normal users.
+
+**Status: Implemented and pushed (commit 8b56d59)**
+
+---
+
+## 8. User Registration & Login
+
+Cookie-based authentication. Only registered/logged-in users can submit or approve loans.
+See full spec: `.claude/spec/userLoginRegistration.md`
+
+**Status: Implemented and pushed (commit 216da47)**
+
 ---
 
 ## 7. Key Files

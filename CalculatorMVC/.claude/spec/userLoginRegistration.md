@@ -205,4 +205,4 @@ CalculatorMVC.csproj                    ← add BCrypt.Net-Next package
 
 ---
 
-**Status: Not yet implemented**
+**Status: Implemented and pushed (commit 216da47)**
