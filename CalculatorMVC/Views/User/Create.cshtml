@@ -52,6 +52,10 @@
     const reportingGroup  = document.getElementById('reportingToGroup');
     const reportingSelect = document.getElementById('reportingToSelect');
 
+    const ROLE_NORMAL     = '@((int)CalculatorMVC.Models.UserRole.Normal)';
+    const ROLE_SUPERVISOR = '@((int)CalculatorMVC.Models.UserRole.Supervisor)';
+    const ROLE_MANAGER    = '@((int)CalculatorMVC.Models.UserRole.Manager)';
+
     const warning = document.getElementById('noOptionsWarning');
 
     function updateReportingDropdown() {
@@ -59,18 +63,19 @@
         reportingSelect.innerHTML = '<option value="">— Select —</option>';
         warning.classList.add('d-none');
 
-        if (role === 'Manager') {
+        if (role === ROLE_MANAGER) {
             reportingGroup.style.display = 'none';
             reportingSelect.value = '';
             return;
         }
 
         reportingGroup.style.display = '';
-        const options = role === 'Supervisor' ? managers : supervisors;
+        const options = role === ROLE_SUPERVISOR ? managers : supervisors;
 
         if (options.length === 0) {
-            const needed = role === 'Supervisor' ? 'a Manager' : 'a Supervisor';
-            warning.textContent = `No ${role === 'Supervisor' ? 'managers' : 'supervisors'} exist yet. Please add ${needed} first.`;
+            warning.textContent = role === ROLE_SUPERVISOR
+                ? 'No managers exist yet. Please add a Manager first.'
+                : 'No supervisors exist yet. Please add a Supervisor first.';
             warning.classList.remove('d-none');
             return;
         }
