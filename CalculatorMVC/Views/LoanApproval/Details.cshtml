@@ -1,0 +1,93 @@
+@model CalculatorMVC.Models.LoanApplication
+@{
+    ViewData["Title"] = $"Loan #{Model.Id}";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-1">Loan #@Model.Id — @Model.ApplicantName</h2>
+    <p>
+        <span class="badge bg-@StatusColor(Model.Status) fs-6">@Model.Status</span>
+    </p>
+
+    <dl class="row mt-3">
+        <dt class="col-sm-3">Applicant</dt>
+        <dd class="col-sm-9">@Model.ApplicantName</dd>
+
+        <dt class="col-sm-3">Purpose</dt>
+        <dd class="col-sm-9">@Model.Purpose</dd>
+
+        <dt class="col-sm-3">Amount</dt>
+        <dd class="col-sm-9">$@Model.Amount.ToString("0.00")</dd>
+
+        <dt class="col-sm-3">Queue</dt>
+        <dd class="col-sm-9">@Model.CurrentQueue</dd>
+
+        <dt class="col-sm-3">Submitted</dt>
+        <dd class="col-sm-9">@Model.SubmittedAt.ToString("dd MMM yyyy HH:mm")</dd>
+
+        @if (Model.ApprovedAt.HasValue)
+        {
+            <dt class="col-sm-3">Approved By</dt>
+            <dd class="col-sm-9">@Model.ApprovedBy on @Model.ApprovedAt.Value.ToString("dd MMM yyyy HH:mm")</dd>
+        }
+
+        @if (Model.Status == CalculatorMVC.Models.LoanStatus.Rejected)
+        {
+            <dt class="col-sm-3">Rejected By</dt>
+            <dd class="col-sm-9">@Model.RejectedBy on @(Model.RejectedAt?.ToString("dd MMM yyyy HH:mm"))</dd>
+
+            <dt class="col-sm-3">Reason</dt>
+            <dd class="col-sm-9 text-danger">@Model.RejectionReason</dd>
+        }
+
+        @if (Model.DisbursedAt.HasValue)
+        {
+            <dt class="col-sm-3">Disbursed By</dt>
+            <dd class="col-sm-9">@Model.DisbursedBy on @Model.DisbursedAt.Value.ToString("dd MMM yyyy HH:mm")</dd>
+        }
+    </dl>
+
+    @if (Model.Repayments.Any())
+    {
+        <h4 class="mt-4">Repayment Schedule <small class="text-muted fs-6">(12 months @@ 10% p.a.)</small></h4>
+        <table class="table table-sm table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Due Date</th>
+                    <th>Principal</th>
+                    <th>Interest</th>
+                    <th>EMI</th>
+                    <th>Balance</th>
+                    <th>Paid</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Repayments.OrderBy(r => r.InstallmentNumber))
+                {
+                    <tr class="@(r.IsPaid ? "table-success" : "")">
+                        <td>@r.InstallmentNumber</td>
+                        <td>@r.DueDate.ToString("dd MMM yyyy")</td>
+                        <td>$@r.Principal.ToString("0.00")</td>
+                        <td>$@r.Interest.ToString("0.00")</td>
+                        <td>$@r.TotalDue.ToString("0.00")</td>
+                        <td>$@r.Balance.ToString("0.00")</td>
+                        <td>@(r.IsPaid ? "Yes" : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <a asp-action="AllLoans" class="btn btn-secondary mt-3">All Loans</a>
+</div>
+
+@functions {
+    string StatusColor(CalculatorMVC.Models.LoanStatus s) => s switch {
+        CalculatorMVC.Models.LoanStatus.Pending   => "secondary",
+        CalculatorMVC.Models.LoanStatus.Approved  => "success",
+        CalculatorMVC.Models.LoanStatus.Rejected  => "danger",
+        CalculatorMVC.Models.LoanStatus.Disbursed => "primary",
+        _ => "secondary"
+    };
+}

@@ -1,0 +1,60 @@
+@model IEnumerable<CalculatorMVC.Models.LoanApplication>
+@{
+    ViewData["Title"] = "All Loans";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">All Loan Applications</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No loans submitted yet.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Applicant</th>
+                    <th>Purpose</th>
+                    <th>Amount</th>
+                    <th>Queue</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in Model.OrderByDescending(l => l.SubmittedAt))
+                {
+                    <tr>
+                        <td>@loan.Id</td>
+                        <td>@loan.ApplicantName</td>
+                        <td>@loan.Purpose</td>
+                        <td>$@loan.Amount.ToString("0.00")</td>
+                        <td>@loan.CurrentQueue</td>
+                        <td>
+                            <span class="badge bg-@StatusColor(loan.Status)">@loan.Status</span>
+                        </td>
+                        <td>@loan.SubmittedAt.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@loan.Id"
+                               class="btn btn-info btn-sm">Details</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@functions {
+    string StatusColor(CalculatorMVC.Models.LoanStatus s) => s switch {
+        CalculatorMVC.Models.LoanStatus.Pending   => "secondary",
+        CalculatorMVC.Models.LoanStatus.Approved  => "success",
+        CalculatorMVC.Models.LoanStatus.Rejected  => "danger",
+        CalculatorMVC.Models.LoanStatus.Disbursed => "primary",
+        _ => "secondary"
+    };
+}

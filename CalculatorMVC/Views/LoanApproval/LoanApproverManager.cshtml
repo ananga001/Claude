@@ -1,13 +1,14 @@
-@model IEnumerable<CalculatorMVC.Models.LoanApplication>
+@model CalculatorMVC.Models.ManagerQueueViewModel
 @{
     ViewData["Title"] = "Manager Queue";
 }
 
 <div class="container mt-5">
     <h2 class="mb-1">Manager — Loan Queue</h2>
-    <p class="text-muted mb-4">Loans $1000 and above awaiting approval.</p>
+    <p class="text-muted mb-4">Loans $1000 and above.</p>
 
-    @if (!Model.Any())
+    <h5>Pending Approval</h5>
+    @if (!Model.PendingLoans.Any())
     {
         <div class="alert alert-info">No pending loans in this queue.</div>
     }
@@ -25,7 +26,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var loan in Model)
+                @foreach (var loan in Model.PendingLoans)
                 {
                     <tr>
                         <td>@loan.Id</td>
@@ -38,6 +39,55 @@
                                 <input type="hidden" name="id" value="@loan.Id" />
                                 <button type="submit" class="btn btn-success btn-sm">Approve</button>
                             </form>
+                            <form asp-action="ManagerReject" method="post" class="d-inline ms-2">
+                                <input type="hidden" name="id" value="@loan.Id" />
+                                <input type="text" name="reason" placeholder="Rejection reason"
+                                       class="form-control form-control-sm d-inline w-auto" required />
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Reject this loan?')">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h5 class="mt-4">Approved — Awaiting Disbursement</h5>
+    @if (!Model.ApprovedLoans.Any())
+    {
+        <div class="alert alert-info">No approved loans awaiting disbursement.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-success">
+                <tr>
+                    <th>#</th>
+                    <th>Applicant</th>
+                    <th>Purpose</th>
+                    <th>Amount</th>
+                    <th>Approved By</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in Model.ApprovedLoans)
+                {
+                    <tr>
+                        <td>@loan.Id</td>
+                        <td>@loan.ApplicantName</td>
+                        <td>@loan.Purpose</td>
+                        <td>$@loan.Amount.ToString("0.00")</td>
+                        <td>@loan.ApprovedBy</td>
+                        <td>
+                            <form asp-action="Disburse" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@loan.Id" />
+                                <button type="submit" class="btn btn-primary btn-sm"
+                                        onclick="return confirm('Disburse funds for this loan?')">Disburse</button>
+                            </form>
+                            <a asp-action="Details" asp-route-id="@loan.Id"
+                               class="btn btn-info btn-sm ms-1">Details</a>
                         </td>
                     </tr>
                 }

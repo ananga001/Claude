@@ -1,6 +1,6 @@
 namespace CalculatorMVC.Models;
 
-public enum LoanStatus { Pending, Approved }
+public enum LoanStatus { Pending, Approved, Rejected, Disbursed }
 
 public class LoanApplication
 {
@@ -13,4 +13,10 @@ public class LoanApplication
     public string? ApprovedBy { get; set; }
     public DateTime SubmittedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
+    public string? RejectionReason { get; set; }
+    public string? RejectedBy { get; set; }
+    public DateTime? RejectedAt { get; set; }
+    public string? DisbursedBy { get; set; }
+    public DateTime? DisbursedAt { get; set; }
+    public List<LoanRepayment> Repayments { get; set; } = new();
 }

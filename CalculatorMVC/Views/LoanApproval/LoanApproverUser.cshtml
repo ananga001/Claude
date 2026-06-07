@@ -38,6 +38,13 @@
                                 <input type="hidden" name="id" value="@loan.Id" />
                                 <button type="submit" class="btn btn-success btn-sm">Approve</button>
                             </form>
+                            <form asp-action="UserReject" method="post" class="d-inline ms-2">
+                                <input type="hidden" name="id" value="@loan.Id" />
+                                <input type="text" name="reason" placeholder="Rejection reason"
+                                       class="form-control form-control-sm d-inline w-auto" required />
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Reject this loan?')">Reject</button>
+                            </form>
                         </td>
                     </tr>
                 }
