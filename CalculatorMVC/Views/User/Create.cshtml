@@ -33,6 +33,7 @@
             <select asp-for="ReportingToId" class="form-select" id="reportingToSelect">
                 <option value="">— Select —</option>
             </select>
+            <div id="noOptionsWarning" class="alert alert-warning mt-2 py-2 d-none"></div>
             <span asp-validation-for="ReportingToId" class="text-danger"></span>
         </div>
 
@@ -51,9 +52,12 @@
     const reportingGroup  = document.getElementById('reportingToGroup');
     const reportingSelect = document.getElementById('reportingToSelect');
 
+    const warning = document.getElementById('noOptionsWarning');
+
     function updateReportingDropdown() {
         const role = roleSelect.value;
         reportingSelect.innerHTML = '<option value="">— Select —</option>';
+        warning.classList.add('d-none');
 
         if (role === 'Manager') {
             reportingGroup.style.display = 'none';
@@ -63,6 +67,14 @@
 
         reportingGroup.style.display = '';
         const options = role === 'Supervisor' ? managers : supervisors;
+
+        if (options.length === 0) {
+            const needed = role === 'Supervisor' ? 'a Manager' : 'a Supervisor';
+            warning.textContent = `No ${role === 'Supervisor' ? 'managers' : 'supervisors'} exist yet. Please add ${needed} first.`;
+            warning.classList.remove('d-none');
+            return;
+        }
+
         options.forEach(o => {
             const opt = document.createElement('option');
             opt.value = o.id;
