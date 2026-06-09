@@ -7,7 +7,7 @@ public class SupervisorApprover : LoanApproverBase
     public override void Handle(LoanApplication loan)
     {
         if (loan.Amount < 1000)
-            loan.CurrentQueue = "Supervisor";
+            loan.CurrentQueue = LoanQueue.Supervisor;
         else
             _next?.Handle(loan);
     }

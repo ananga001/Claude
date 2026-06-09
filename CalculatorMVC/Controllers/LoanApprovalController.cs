@@ -3,6 +3,7 @@ using CalculatorMVC.Models;
 using CalculatorMVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static CalculatorMVC.Chain.LoanQueue;
 
 namespace CalculatorMVC.Controllers;
 
@@ -41,126 +42,102 @@ public class LoanApprovalController : Controller
         return RedirectToAction("Index");
     }
 
+    private const int MaxRejectionReasonLength = 500;
+
     [Authorize(Roles = "Normal")]
     public IActionResult LoanApproverUser()
-        => View(_store.GetByQueue("Normal"));
+        => View(_store.GetByQueue(Normal));
 
-    [HttpPost]
-    [Authorize(Roles = "Normal")]
-    public IActionResult UserApprove(int id)
-    {
-        var loan = _store.Approve(id, User.Identity!.Name!);
-        if (loan is null)
-            _logger.LogWarning("UserApprove: loan {Id} not found or not Pending, by {User}", id, User.Identity!.Name);
-        else
-            _email.SendApprovalEmail(loan);
-        return RedirectToAction("LoanApproverUser");
-    }
+    [HttpPost, Authorize(Roles = "Normal")]
+    public IActionResult UserApprove(int id)       => ApproveCore(id, "LoanApproverUser");
 
-    [HttpPost]
-    [Authorize(Roles = "Normal")]
-    public IActionResult UserReject(int id, string reason)
-    {
-        if (string.IsNullOrWhiteSpace(reason))
-        {
-            TempData["Error"] = "Rejection reason is required.";
-            return RedirectToAction("LoanApproverUser");
-        }
-        if (reason.Length > 500) reason = reason[..500];
-        var loan = _store.Reject(id, User.Identity!.Name!, reason);
-        if (loan is null)
-            _logger.LogWarning("UserReject: loan {Id} not found or not Pending, by {User}", id, User.Identity!.Name);
-        return RedirectToAction("LoanApproverUser");
-    }
+    [HttpPost, Authorize(Roles = "Normal")]
+    public IActionResult UserReject(int id, string reason) => RejectCore(id, reason, "LoanApproverUser");
 
     [Authorize(Roles = "Supervisor")]
     public IActionResult LoanApproverSupervisor()
-        => View(_store.GetByQueue("Supervisor"));
+        => View(_store.GetByQueue(Supervisor));
 
-    [HttpPost]
-    [Authorize(Roles = "Supervisor")]
-    public IActionResult SupervisorApprove(int id)
-    {
-        var loan = _store.Approve(id, User.Identity!.Name!);
-        if (loan is null)
-            _logger.LogWarning("SupervisorApprove: loan {Id} not found or not Pending, by {User}", id, User.Identity!.Name);
-        else
-            _email.SendApprovalEmail(loan);
-        return RedirectToAction("LoanApproverSupervisor");
-    }
+    [HttpPost, Authorize(Roles = "Supervisor")]
+    public IActionResult SupervisorApprove(int id) => ApproveCore(id, "LoanApproverSupervisor");
 
-    [HttpPost]
-    [Authorize(Roles = "Supervisor")]
-    public IActionResult SupervisorReject(int id, string reason)
-    {
-        if (string.IsNullOrWhiteSpace(reason))
-        {
-            TempData["Error"] = "Rejection reason is required.";
-            return RedirectToAction("LoanApproverSupervisor");
-        }
-        if (reason.Length > 500) reason = reason[..500];
-        var loan = _store.Reject(id, User.Identity!.Name!, reason);
-        if (loan is null)
-            _logger.LogWarning("SupervisorReject: loan {Id} not found or not Pending, by {User}", id, User.Identity!.Name);
-        return RedirectToAction("LoanApproverSupervisor");
-    }
+    [HttpPost, Authorize(Roles = "Supervisor")]
+    public IActionResult SupervisorReject(int id, string reason) => RejectCore(id, reason, "LoanApproverSupervisor");
 
     [Authorize(Roles = "Manager")]
     public IActionResult LoanApproverManager()
     {
         var vm = new ManagerQueueViewModel
         {
-            PendingLoans = _store.GetByQueue("Manager"),
-            ApprovedLoans = _store.GetAll()
-                                  .Where(l => l.CurrentQueue == "Manager"
-                                           && l.Status == LoanStatus.Approved)
-                                  .ToList()
+            PendingLoans  = _store.GetByQueue(Manager),
+            ApprovedLoans = _store.GetApprovedByQueue(Manager)
         };
         return View(vm);
     }
 
-    [HttpPost]
-    [Authorize(Roles = "Manager")]
-    public IActionResult ManagerApprove(int id)
+    [HttpPost, Authorize(Roles = "Manager")]
+    public IActionResult ManagerApprove(int id)           => ApproveCore(id, "LoanApproverManager");
+
+    [HttpPost, Authorize(Roles = "Manager")]
+    public IActionResult ManagerReject(int id, string reason) => RejectCore(id, reason, "LoanApproverManager");
+
+    private IActionResult ApproveCore(int id, string redirectAction)
     {
-        var loan = _store.Approve(id, User.Identity!.Name!);
+        var approver = User.Identity!.Name!;
+        var existing = _store.GetById(id);
+        if (existing?.SubmittedByUsername == approver)
+        {
+            TempData["Error"] = "You cannot approve your own loan application.";
+            return RedirectToAction(redirectAction);
+        }
+        var loan = _store.Approve(id, approver);
         if (loan is null)
-            _logger.LogWarning("ManagerApprove: loan {Id} not found or not Pending, by {User}", id, User.Identity!.Name);
+            _logger.LogWarning("Approve: loan {Id} not found or not Pending, by {User}", id, approver);
         else
             _email.SendApprovalEmail(loan);
-        return RedirectToAction("LoanApproverManager");
+        return RedirectToAction(redirectAction);
     }
 
-    [HttpPost]
-    [Authorize(Roles = "Manager")]
-    public IActionResult ManagerReject(int id, string reason)
+    private IActionResult RejectCore(int id, string reason, string redirectAction)
     {
         if (string.IsNullOrWhiteSpace(reason))
         {
             TempData["Error"] = "Rejection reason is required.";
-            return RedirectToAction("LoanApproverManager");
+            return RedirectToAction(redirectAction);
         }
-        if (reason.Length > 500) reason = reason[..500];
-        var loan = _store.Reject(id, User.Identity!.Name!, reason);
+        if (reason.Length > MaxRejectionReasonLength)
+            reason = reason[..MaxRejectionReasonLength];
+        var rejector = User.Identity!.Name!;
+        var loan = _store.Reject(id, rejector, reason);
         if (loan is null)
-            _logger.LogWarning("ManagerReject: loan {Id} not found or not Pending, by {User}", id, User.Identity!.Name);
-        return RedirectToAction("LoanApproverManager");
+            _logger.LogWarning("Reject: loan {Id} not found or not Pending, by {User}", id, rejector);
+        return RedirectToAction(redirectAction);
     }
 
     [HttpPost]
     [Authorize(Roles = "Manager")]
     public IActionResult Disburse(int id)
     {
-        var loan = _store.Disburse(id, User.Identity!.Name!);
-        if (loan is null)
+        var disburser = User.Identity!.Name!;
+        var existing  = _store.GetById(id);
+
+        if (existing is null || existing.Status != LoanStatus.Approved)
         {
-            _logger.LogWarning("Disburse: loan {Id} not found or not Approved, by {User}", id, User.Identity!.Name);
             TempData["Error"] = "Loan not found or not in Approved status.";
+            return RedirectToAction("LoanApproverManager");
         }
-        else
+        if (existing.ApprovedBy == disburser)
         {
-            _logger.LogInformation("Loan {Id} disbursed by {User}", id, User.Identity!.Name);
+            TempData["Error"] = "The manager who approved this loan cannot also disburse it.";
+            return RedirectToAction("LoanApproverManager");
         }
+
+        var loan = _store.Disburse(id, disburser);
+        if (loan is null)
+            _logger.LogWarning("Disburse: loan {Id} not found or not Approved, by {User}", id, disburser);
+        else
+            _logger.LogInformation("Loan {Id} disbursed by {User}", id, disburser);
+
         return RedirectToAction("LoanApproverManager");
     }
 
@@ -172,12 +149,15 @@ public class LoanApprovalController : Controller
         bool isStaff = User.IsInRole("Manager") || User.IsInRole("Supervisor");
         bool isOwner = loan.SubmittedByUsername == User.Identity!.Name;
         if (!isStaff && !isOwner)
+        {
+            _logger.LogWarning("Unauthorized Details access: loan {Id} by {User}", id, User.Identity!.Name);
             return Forbid();
+        }
 
         return View(loan);
     }
 
     [Authorize(Roles = "Manager,Supervisor")]
     public IActionResult AllLoans()
-        => View(_store.GetAll());
+        => View(_store.GetAll().OrderByDescending(l => l.SubmittedAt).ToList());
 }

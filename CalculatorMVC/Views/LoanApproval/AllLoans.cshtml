@@ -26,7 +26,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var loan in Model.OrderByDescending(l => l.SubmittedAt))
+                @foreach (var loan in Model)
                 {
                     <tr>
                         <td>@loan.Id</td>
@@ -35,7 +35,7 @@
                         <td>$@loan.Amount.ToString("0.00")</td>
                         <td>@loan.CurrentQueue</td>
                         <td>
-                            <span class="badge bg-@StatusColor(loan.Status)">@loan.Status</span>
+                            <span class="badge bg-@loan.Status.BadgeColor()">@loan.Status</span>
                         </td>
                         <td>@loan.SubmittedAt.ToString("dd MMM yyyy")</td>
                         <td>
@@ -49,12 +49,3 @@
     }
 </div>
 
-@functions {
-    string StatusColor(CalculatorMVC.Models.LoanStatus s) => s switch {
-        CalculatorMVC.Models.LoanStatus.Pending   => "secondary",
-        CalculatorMVC.Models.LoanStatus.Approved  => "success",
-        CalculatorMVC.Models.LoanStatus.Rejected  => "danger",
-        CalculatorMVC.Models.LoanStatus.Disbursed => "primary",
-        _ => "secondary"
-    };
-}

@@ -9,12 +9,18 @@ namespace CalculatorMVC.Controllers;
 public class UserController : Controller
 {
     private readonly IUserStore _store;
+    private readonly ILogger<UserController> _logger;
 
-    public UserController(IUserStore store) => _store = store;
+    public UserController(IUserStore store, ILogger<UserController> logger)
+    {
+        _store = store;
+        _logger = logger;
+    }
 
     public IActionResult Index()
     {
-        var all = _store.GetAll();
+        var all   = _store.GetAll();
+        var byId  = all.ToDictionary(u => u.Id);
         var vm = new UserIndexViewModel
         {
             Managers    = all.Where(u => u.Role == UserRole.Manager).ToList(),
@@ -24,7 +30,7 @@ public class UserController : Controller
                 .Where(u => u.ReportingToId.HasValue)
                 .ToDictionary(
                     u => u.Id,
-                    u => _store.GetById(u.ReportingToId!.Value)?.Name ?? "Unknown")
+                    u => byId.TryGetValue(u.ReportingToId!.Value, out var mgr) ? mgr.Name : "Unknown")
         };
         return View(vm);
     }

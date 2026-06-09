@@ -10,5 +10,6 @@ public interface ILoanStore
     LoanApplication? Reject(int id, string rejectedBy, string reason);
     LoanApplication? Disburse(int id, string disbursedBy);
     IReadOnlyList<LoanApplication> GetAll();
+    IReadOnlyList<LoanApplication> GetApprovedByQueue(string queue);
     LoanApplication? GetById(int id);
 }

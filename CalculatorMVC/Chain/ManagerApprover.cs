@@ -6,6 +6,6 @@ public class ManagerApprover : LoanApproverBase
 {
     public override void Handle(LoanApplication loan)
     {
-        loan.CurrentQueue = "Manager";
+        loan.CurrentQueue = LoanQueue.Manager;
     }
 }

@@ -26,8 +26,37 @@ public class AccountStore : IAccountStore
 
     public Account? ValidatePassword(string username, string password)
     {
-        var account = FindByUsername(username);
-        if (account is null) return null;
-        return BCrypt.Net.BCrypt.Verify(password, account.PasswordHash) ? account : null;
+        lock (_lock)
+        {
+            var account = _accounts.FirstOrDefault(a =>
+                string.Equals(a.Username, username, StringComparison.OrdinalIgnoreCase));
+            if (account is null) return null;
+
+            if (account.LockedUntil.HasValue && account.LockedUntil > DateTime.UtcNow)
+                return null;
+
+            if (BCrypt.Net.BCrypt.Verify(password, account.PasswordHash))
+            {
+                account.FailedLoginAttempts = 0;
+                account.LockedUntil = null;
+                return account;
+            }
+
+            account.FailedLoginAttempts++;
+            if (account.FailedLoginAttempts >= 5)
+                account.LockedUntil = DateTime.UtcNow.AddMinutes(15);
+
+            return null;
+        }
+    }
+
+    public bool IsLockedOut(string username)
+    {
+        lock (_lock)
+        {
+            var account = _accounts.FirstOrDefault(a =>
+                string.Equals(a.Username, username, StringComparison.OrdinalIgnoreCase));
+            return account?.LockedUntil.HasValue == true && account.LockedUntil > DateTime.UtcNow;
+        }
     }
 }

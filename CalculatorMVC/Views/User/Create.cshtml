@@ -44,54 +44,10 @@
 @section Scripts {
 <div id="app-data"
      data-managers="@System.Text.Json.JsonSerializer.Serialize(managers.Select(m => new { id = m.Id, name = m.Name }))"
-     data-supervisors="@System.Text.Json.JsonSerializer.Serialize(supervisors.Select(s => new { id = s.Id, name = s.Name }))">
+     data-supervisors="@System.Text.Json.JsonSerializer.Serialize(supervisors.Select(s => new { id = s.Id, name = s.Name }))"
+     data-role-normal="@((int)CalculatorMVC.Models.UserRole.Normal)"
+     data-role-supervisor="@((int)CalculatorMVC.Models.UserRole.Supervisor)"
+     data-role-manager="@((int)CalculatorMVC.Models.UserRole.Manager)">
 </div>
-<script>
-    const appData     = document.getElementById('app-data').dataset;
-    const managers    = JSON.parse(appData.managers);
-    const supervisors = JSON.parse(appData.supervisors);
-
-    const roleSelect      = document.getElementById('roleSelect');
-    const reportingGroup  = document.getElementById('reportingToGroup');
-    const reportingSelect = document.getElementById('reportingToSelect');
-
-    const ROLE_NORMAL     = '@((int)CalculatorMVC.Models.UserRole.Normal)';
-    const ROLE_SUPERVISOR = '@((int)CalculatorMVC.Models.UserRole.Supervisor)';
-    const ROLE_MANAGER    = '@((int)CalculatorMVC.Models.UserRole.Manager)';
-
-    const warning = document.getElementById('noOptionsWarning');
-
-    function updateReportingDropdown() {
-        const role = roleSelect.value;
-        reportingSelect.innerHTML = '<option value="">— Select —</option>';
-        warning.classList.add('d-none');
-
-        if (role === ROLE_MANAGER) {
-            reportingGroup.style.display = 'none';
-            reportingSelect.value = '';
-            return;
-        }
-
-        reportingGroup.style.display = '';
-        const options = role === ROLE_SUPERVISOR ? managers : supervisors;
-
-        if (options.length === 0) {
-            warning.textContent = role === ROLE_SUPERVISOR
-                ? 'No managers exist yet. Please add a Manager first.'
-                : 'No supervisors exist yet. Please add a Supervisor first.';
-            warning.classList.remove('d-none');
-            return;
-        }
-
-        options.forEach(o => {
-            const opt = document.createElement('option');
-            opt.value = o.id;
-            opt.textContent = o.name;
-            reportingSelect.appendChild(opt);
-        });
-    }
-
-    roleSelect.addEventListener('change', updateReportingDropdown);
-    updateReportingDropdown();
-</script>
+<script src="~/js/user-create.js"></script>
 }

@@ -56,6 +56,14 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
+        if (_store.IsLockedOut(model.Username))
+        {
+            _logger.LogWarning("Locked-out login attempt for {Username} from {IP}",
+                model.Username, HttpContext.Connection.RemoteIpAddress);
+            ModelState.AddModelError("", "Account is locked due to too many failed attempts. Try again in 15 minutes.");
+            return View(model);
+        }
+
         var account = _store.ValidatePassword(model.Username, model.Password);
         if (account is null)
         {

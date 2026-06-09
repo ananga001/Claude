@@ -6,7 +6,7 @@
 <div class="container mt-5">
     <h2 class="mb-1">Loan #@Model.Id — @Model.ApplicantName</h2>
     <p>
-        <span class="badge bg-@StatusColor(Model.Status) fs-6">@Model.Status</span>
+        <span class="badge bg-@Model.Status.BadgeColor() fs-6">@Model.Status</span>
     </p>
 
     <dl class="row mt-3">
@@ -63,7 +63,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var r in Model.Repayments.OrderBy(r => r.InstallmentNumber))
+                @foreach (var r in Model.Repayments)
                 {
                     <tr class="@(r.IsPaid ? "table-success" : "")">
                         <td>@r.InstallmentNumber</td>
@@ -82,12 +82,3 @@
     <a asp-action="AllLoans" class="btn btn-secondary mt-3">All Loans</a>
 </div>
 
-@functions {
-    string StatusColor(CalculatorMVC.Models.LoanStatus s) => s switch {
-        CalculatorMVC.Models.LoanStatus.Pending   => "secondary",
-        CalculatorMVC.Models.LoanStatus.Approved  => "success",
-        CalculatorMVC.Models.LoanStatus.Rejected  => "danger",
-        CalculatorMVC.Models.LoanStatus.Disbursed => "primary",
-        _ => "secondary"
-    };
-}
