@@ -42,11 +42,14 @@
 </div>
 
 @section Scripts {
+<div id="app-data"
+     data-managers="@System.Text.Json.JsonSerializer.Serialize(managers.Select(m => new { id = m.Id, name = m.Name }))"
+     data-supervisors="@System.Text.Json.JsonSerializer.Serialize(supervisors.Select(s => new { id = s.Id, name = s.Name }))">
+</div>
 <script>
-    const managers    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                            managers.Select(m => new { id = m.Id, name = m.Name })));
-    const supervisors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                            supervisors.Select(s => new { id = s.Id, name = s.Name })));
+    const appData     = document.getElementById('app-data').dataset;
+    const managers    = JSON.parse(appData.managers);
+    const supervisors = JSON.parse(appData.supervisors);
 
     const roleSelect      = document.getElementById('roleSelect');
     const reportingGroup  = document.getElementById('reportingToGroup');

@@ -13,7 +13,7 @@ public class LoanStore : ILoanStore
         lock (_lock)
         {
             loan.Id = _nextId++;
-            loan.SubmittedAt = DateTime.Now;
+            loan.SubmittedAt = DateTime.UtcNow;
             _loans.Add(loan);
         }
     }
@@ -28,11 +28,11 @@ public class LoanStore : ILoanStore
     {
         lock (_lock)
         {
-            var loan = _loans.FirstOrDefault(l => l.Id == id);
+            var loan = _loans.FirstOrDefault(l => l.Id == id && l.Status == LoanStatus.Pending);
             if (loan is null) return null;
             loan.Status = LoanStatus.Approved;
             loan.ApprovedBy = approvedBy;
-            loan.ApprovedAt = DateTime.Now;
+            loan.ApprovedAt = DateTime.UtcNow;
             GenerateRepaymentSchedule(loan);
             return loan;
         }
@@ -42,12 +42,12 @@ public class LoanStore : ILoanStore
     {
         lock (_lock)
         {
-            var loan = _loans.FirstOrDefault(l => l.Id == id);
+            var loan = _loans.FirstOrDefault(l => l.Id == id && l.Status == LoanStatus.Pending);
             if (loan is null) return null;
             loan.Status = LoanStatus.Rejected;
             loan.RejectedBy = rejectedBy;
             loan.RejectionReason = reason;
-            loan.RejectedAt = DateTime.Now;
+            loan.RejectedAt = DateTime.UtcNow;
             return loan;
         }
     }
@@ -60,7 +60,7 @@ public class LoanStore : ILoanStore
             if (loan is null) return null;
             loan.Status = LoanStatus.Disbursed;
             loan.DisbursedBy = disbursedBy;
-            loan.DisbursedAt = DateTime.Now;
+            loan.DisbursedAt = DateTime.UtcNow;
             return loan;
         }
     }
@@ -87,7 +87,7 @@ public class LoanStore : ILoanStore
                      / (Math.Pow(1 + monthlyRate, termMonths) - 1);
 
         double balance = principal;
-        var startDate = loan.ApprovedAt ?? DateTime.Now;
+        var startDate = loan.ApprovedAt ?? DateTime.UtcNow;
 
         for (int i = 1; i <= termMonths; i++)
         {

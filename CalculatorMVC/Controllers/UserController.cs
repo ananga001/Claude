@@ -1,9 +1,11 @@
 using CalculatorMVC.Models;
 using CalculatorMVC.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculatorMVC.Controllers;
 
+[Authorize(Roles = "Manager")]
 public class UserController : Controller
 {
     private readonly IUserStore _store;
